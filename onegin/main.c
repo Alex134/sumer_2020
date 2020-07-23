@@ -17,11 +17,12 @@ char* read_text (const char *file_name);
 long size_file(FILE *f);
 void split_lines (char* text, int *lines);
 int Compare(const char *str1, const char *str2);
-char** indication_beginning (char * text, int lines);
-void  printf_file(char **array_pointer_start, int lines);
-void printf_array(const char **array_pointer_start, int lines, const char *title);
+struct indication_beginning_size_lines* indication_beginning (char * text, int lines);
+void  printf_file(struct indication_beginning_size_lines *array_pointer_start, int lines);
+void printf_array(struct indication_beginning_size_lines *array_pointer_start, int lines, const char *title);
 int cmp_alpha(char char1);
 int  sort_revers(const char *str1, const char *str2);
+void  sort(struct indication_beginning_size_lines *array_pointer_start, int lines, int (*function) (const char *str1, const char *str2));
 
 void unit_test_read ();
 void unit_test_size();
@@ -36,7 +37,11 @@ void unit_test_indication();
 
 //}----------------------------------------------------------------------------------------------------------------
 
-void split_lines (char* text, int *lines) {
+void split_lines (char* text, int *lines)
+{
+    assert(text != NULL);
+    assert(lines != NULL);
+
     int end_line = 0;
 
     if (text == NULL)
@@ -111,6 +116,8 @@ void unit_test_split()
 
 char* read_text (const char *file_name)
 {
+    assert(file_name != NULL);
+
     FILE *f = fopen(file_name, "r");
 
     long length = size_file (f);
@@ -124,8 +131,7 @@ char* read_text (const char *file_name)
     long long length_read = fread (text, sizeof (char), length, f);
     //if (length_read != length)
        // printf ("error of read on linux or only one lines\n");
-//1endN2testN3text0
-//00000000000000000
+
     fclose(f);
     return text;
 
@@ -144,6 +150,9 @@ char* read_text (const char *file_name)
 
 int Compare(const char *str1, const char *str2)
 {
+    assert(str1 != NULL);
+    assert(str2 != NULL);
+
     return strcmp(str1,str2) < 0;
 }
 
@@ -158,7 +167,9 @@ int Compare(const char *str1, const char *str2)
 //}----------------------------------------------------------------------------------------------------------------
 
 
-long size_file(FILE *f) {
+long size_file(FILE *f)
+{
+
     assert(f != NULL);
 
     long length = 0;
@@ -259,17 +270,29 @@ void unit_test_read ()
 //! @return  Массив укаазателей на начлао каждой из сторк и тексте.
 //!
 //}----------------------------------------------------------------------------------------------------------------
+struct indication_beginning_size_lines
+{
+    char  *beginning;
+    int size;
+};
 
-char** indication_beginning (char * text, int lines) {
-    char **array_pointers_start = (char **) calloc(lines + 1, sizeof(char *));
+
+struct indication_beginning_size_lines* indication_beginning (char * text, int lines){
+
+    assert(text != NULL);
+
+    struct indication_beginning_size_lines* array_pointers_start = (struct indication_beginning_size_lines*) calloc(lines + 1, sizeof(struct indication_beginning_size_lines*));
 
     int end_line = 1;
     int now_line = 0;
 
     for (int i = 0; now_line < lines; i++) {
-        if ((text[i] != '\0') && (end_line != 0)) {
+        if ((text[i] != '\0') && (end_line != 0))
+        {
             end_line = 0;
-            array_pointers_start[now_line++] = &text[i];
+            array_pointers_start [now_line] .beginning = &text[i];
+            array_pointers_start [now_line] .size = strlen(&text[i]);
+            now_line++;
         }
         if (text[i] == '\0') {
             end_line = 1;
@@ -290,24 +313,24 @@ void unit_test_indication()
     int lines = 3;
     split_lines(text, &lines);
 
-    const char **array_pointers_start = indication_beginning(text, 3);
+    struct indication_beginning_size_lines* array_pointers_start = indication_beginning(text, 3);
 
-    printf_array(array_pointers_start, 3, "after indication begining");
-    printf("++++++++%s %s", array_pointers_start[0], "3test\n");
+   // printf_array(array_pointers_start, 3, "after indication begining");
+   // printf("++++++++%s %s", array_pointers_start[0], "3test\n");
 
-    if ((strcmp("3test", array_pointers_start[0]) != 0) ||
-        (strcmp("2text", array_pointers_start[1]) != 0) ||
-        (strcmp("1end",  array_pointers_start[2]) != 0))
+    if ((strcmp("3test", array_pointers_start [0] .beginning) != 0) ||
+        (strcmp("2text", array_pointers_start [1] .beginning) != 0) ||
+        (strcmp("1end",  array_pointers_start [2] .beginning) != 0))
     {
         printf("problem in function indication \n");
         printf("result1 = %d\nresult2 = %d\nresult3 = %d\n",
-                strcmp("3test", array_pointers_start[0]) == 0,
-                strcmp("2text", array_pointers_start[1]) == 0,
-                strcmp("1end",  array_pointers_start[2]) == 0);
+                strcmp("3test", array_pointers_start [0] .beginning) == 0,
+                strcmp("2text", array_pointers_start [1] .beginning) == 0,
+                strcmp("1end",  array_pointers_start [2] .beginning) == 0);
 
         for (int i = 0; i < 3 ; i++)
         {
-            printf("i = %d - (((%s)))\n", i, array_pointers_start[i]);
+            printf("i = %d - (((%s)))\n", i, array_pointers_start [i] .beginning);
         }
     } else {
         printf("function indication ok \n");
@@ -326,53 +349,67 @@ void unit_test_indication()
 //!
 //}----------------------------------------------------------------------------------------------------------------
 
-void  sort(char **array_pointer_start, int lines, int (*function) (const char *str1, const char *str2))
+void  sort(struct indication_beginning_size_lines *array_pointer_start, int lines, int (*function) (const char *str1, const char *str2))
 {
+    assert( function != NULL);
+    assert(array_pointer_start != NULL);
+
     for(int i = 1; i < lines; i++)
         for(int j = 0; j < lines - i; j++)
-            if(function(array_pointer_start[j], array_pointer_start[j + 1]) == 1)
+            if(function(array_pointer_start[j].beginning, array_pointer_start[j + 1].beginning) == 1)
             {
-                char *time_line = array_pointer_start[j];
+                struct indication_beginning_size_lines time_line = array_pointer_start[j];
                 array_pointer_start[j] = array_pointer_start[j+1];
                 array_pointer_start[j+1] = time_line;
             }
 }
 
-void  printf_file(char **array_pointer_start, int lines)
+void  printf_file(struct indication_beginning_size_lines *array_pointer_start, int lines)
 {
     assert(lines != 0);
+
      FILE *f = fopen("SORTOnegin.txt", "r");
 
      for(int i = 0; i  < lines; i++)
      {
-     fprintf(f,"%s", array_pointer_start[i]);
+     fprintf(f,"%s", array_pointer_start[i].beginning);
     }
 }
 
-void printf_array(const char **array_pointer_start, int lines, const char *title)
+void printf_array(struct indication_beginning_size_lines *array_pointer_start, int lines, const char *title)
 {
     printf("\n%s\n", title);
 
     for (int i =  0 ; i < lines ; i++)
     {
-        printf("%d : (%s)\n", i, array_pointer_start[i]);
+        printf("%d : (%s)\n", i, array_pointer_start[i].beginning);
     }
     printf("\n");
 }
+
 int up_sort(const char *str1, const char *str2)
 {
+    assert(str1 != NULL);
+    assert(str2 != NULL);
+
     if (strcmp(str1, str2) > 0)
         return 1;
 }
 
 int down_sort(const char *str1, const char *str2)
 {
+    assert(str1 != NULL);
+    assert(str2 != NULL);
+
     if (strcmp(str1, str2) > 0)
         return 1;
 }
 
 int  sort_revers(const char *str1, const char *str2)
 {
+    assert(str1 != NULL);
+    assert(str2 != NULL);
+
     int len_1 = strlen(str1);
     int len_2 = strlen(str2);
 
@@ -405,32 +442,25 @@ int main()
     unit_test_split();
     unit_test_indication();
 
-    FILE *f = fopen("test.txt","w");
-    fprintf(f,"3test\n");
-    fprintf(f,"2text\n");
-    fprintf(f,"1end");
-    fclose(f);
 
     int lines = 0;
-    char *text = read_text("test.txt");
+    char *text = read_text("Документы/Romeo.txt");
     split_lines(text, &lines);
     //printf("(%s)\n", text);
-    char **array_pointers_start = indication_beginning(text, lines);
+    struct indication_beginning_size_lines *array_pointer_start = indication_beginning(text, lines);
     //printf("lines = %d\n", lines);
     for (int i = 0; i < lines;i++) {
       //  printf("i = %d (%s)\n", i, array_pointers_start[i]);
     }
-    sort(array_pointers_start, lines, &up_sort);
+    sort(array_pointer_start, lines, &up_sort);
     for (int i = 0; i < lines;i++) {
         //printf("((%s))\n", array_pointers_start[i]);
     }
 
-   printf_file(array_pointers_start,lines);
+   printf_file(array_pointer_start,lines);
 
      unit_test_size();
      unit_test_split();
      unit_test_indication();
-
-    sort(array_pointers_start, lines, sort_revers);
 
 }
