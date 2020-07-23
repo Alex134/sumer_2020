@@ -64,7 +64,7 @@ void split_lines (char* text, int *lines)
         if ((text[i] != '\0') && (end_line == 0))
             end_line = 1;
     }
-    printf("\n%s\n", text);
+    //printf("\n%s\n", text);
     (*lines)++;
 }
 
@@ -119,6 +119,9 @@ char* read_text (const char *file_name)
     assert(file_name != NULL);
 
     FILE *f = fopen(file_name, "r");
+    if (f == NULL){
+        perror("erorr in read");
+    }
 
     long length = size_file (f);
 
@@ -281,7 +284,8 @@ struct indication_beginning_size_lines* indication_beginning (char * text, int l
 
     assert(text != NULL);
 
-    struct indication_beginning_size_lines* array_pointers_start = (struct indication_beginning_size_lines*) calloc(lines + 1, sizeof(struct indication_beginning_size_lines*));
+    struct indication_beginning_size_lines* array_pointers_start =
+            (struct indication_beginning_size_lines*) calloc(lines + 1, sizeof(array_pointers_start[0]));
 
     int end_line = 1;
     int now_line = 0;
@@ -367,13 +371,25 @@ void  sort(struct indication_beginning_size_lines *array_pointer_start, int line
 void  printf_file(struct indication_beginning_size_lines *array_pointer_start, int lines)
 {
     assert(lines != 0);
+    assert(array_pointer_start != NULL);
 
-     FILE *f = fopen("SORTOnegin.txt", "r");
+     FILE *f = fopen("SORTOnegin.txt", "w");
+     if(f == NULL){
+         perror("error fopen");
+     }
 
-     for(int i = 0; i  < lines; i++)
+     for (int i = 0; i  < lines; i++)
      {
-     fprintf(f,"%s", array_pointer_start[i].beginning);
-    }
+       int er = fprintf (f,"%s\n", array_pointer_start[i].beginning);
+        if (er == NULL){
+            perror("eroor fprintf");
+        }
+     }
+
+    int error = fclose(f);
+     if (error == NULL){
+         perror("error fclose");
+     }
 }
 
 void printf_array(struct indication_beginning_size_lines *array_pointer_start, int lines, const char *title)
@@ -437,30 +453,33 @@ int cmp_alpha(char char1)
 
 int main()
 {
+    system("dir");
 
     unit_test_size();
     unit_test_split();
     unit_test_indication();
 
 
+
     int lines = 0;
-    char *text = read_text("Документы/Romeo.txt");
+    char *text = read_text("../Romeo.txt");
     split_lines(text, &lines);
     //printf("(%s)\n", text);
     struct indication_beginning_size_lines *array_pointer_start = indication_beginning(text, lines);
     //printf("lines = %d\n", lines);
     for (int i = 0; i < lines;i++) {
-      //  printf("i = %d (%s)\n", i, array_pointers_start[i]);
+   //     printf("i = %d (%s)\n", i, array_pointer_start[i].beginning);
     }
     sort(array_pointer_start, lines, &up_sort);
     for (int i = 0; i < lines;i++) {
-        //printf("((%s))\n", array_pointers_start[i]);
+        printf("i = %d (%s)\n", i, array_pointer_start[i].beginning);
     }
 
-   printf_file(array_pointer_start,lines);
+    printf_file(array_pointer_start,lines);
 
-     unit_test_size();
+    /* unit_test_size();
      unit_test_split();
      unit_test_indication();
-
+     */
+return 0;
 }
