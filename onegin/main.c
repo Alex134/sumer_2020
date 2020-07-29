@@ -3,9 +3,18 @@
 //!
 //! Список функций :
 //!
-//! - @ref QadraticEquation
-//! - @ref enter
-//! - @ref unittest
+//! - @ref read_text
+//! - @ref size_file
+//! - @ref split_lines
+//! - @ref printf_file
+//! - @ref printf_array
+//! - @ref cmp_alpha
+//! - @ref sort_revers
+//! - @ref sort
+//! - @ref unit_test_read
+//! - @ref unit_test_size
+//! - @ref unit_test_indication
+//! - @ref Compare
 //!
 
 #include <stdio.h>
@@ -21,15 +30,24 @@ struct indication_beginning_size_lines* indication_beginning (char * text, int l
 void  printf_file(struct indication_beginning_size_lines *array_pointer_start, int lines);
 void printf_array(struct indication_beginning_size_lines *array_pointer_start, int lines, const char *title);
 int cmp_alpha(char char1);
-int  sort_revers(const char *str1, const char *str2);
-void  sort(struct indication_beginning_size_lines *array_pointer_start, int lines, int (*function) (const char *str1, const char *str2));
+int  sort_revers(const struct indication_beginning_size_lines *array_pointer_start_1,
+                 const struct indication_beginning_size_lines *array_pointer_start_2);
+void sort(struct indication_beginning_size_lines *array_pointer_start, int lines,
+          int (*function) (const struct indication_beginning_size_lines *array_pointer_start_1,
+                           const struct indication_beginning_size_lines *array_pointer_start_2));
 
 void unit_test_read ();
 void unit_test_size();
 void unit_test_indication();
 
+struct indication_beginning_size_lines
+{
+    char  *beginning;
+    int size;
+};
+
 //{----------------------------------------------------------------------------------------------------------------
-//! @brief   split_lines - соедининяет сторки в одну сокращая пробелы и заменяя пернос строки на \0\n.
+//! @brief   Соедининяет сторки в одну сокращая пробелы и заменяя пернос строки на \0\n.
 //!          A так же подсчитыет количесво строчек в тексте .
 //!
 //! @param   text  - весь текст.
@@ -69,10 +87,8 @@ void split_lines (char* text, int *lines)
 }
 
 //{----------------------------------------------------------------------------------------------------------------
-//! @brief  unit_test_split - проверочный тест функции соединяющей строки.
+//! @brief  Проверочный тест функции соединяющей строки.
 //!
-//! @param   text  - весь текст.
-//! @param   lines - количество строчек.
 //!
 //! @return  Если количесто сторк совпало с правильным - split lines is ok.
 //!          Если не совпало количество строк          - error in split lines и нужное знасение.
@@ -102,12 +118,9 @@ void unit_test_split()
 }
 
 //{----------------------------------------------------------------------------------------------------------------
-//! @brief   read_text - Выделяет панять под текст.
+//! @brief   Выделяет память под текст.
 //!
-//! @param   FILE         - исходный текст.
-//! @param   lenght       - количество памяти (в бийтах) занимаемое исходным текстом.
-//! @param   leenght_read - количество символов в тексте.
-//! @param   text         - весь текст.
+//! @param   file_name  - указатель на файл.
 //!
 //! @return  Указатель на блок памяти под текст.
 //!
@@ -141,7 +154,7 @@ char* read_text (const char *file_name)
 }
 
 //{----------------------------------------------------------------------------------------------------------------
-//! @brief  Compare - Компоратор для сортировки.
+//! @brief  Компоратор для сортировки.
 //!
 //! @param   str1  - первая сравниваемая строка.
 //! @param   str2  - вторая сравниваемая строка.
@@ -160,36 +173,36 @@ int Compare(const char *str1, const char *str2)
 }
 
 //{----------------------------------------------------------------------------------------------------------------
-//! @brief  size_file - находит размер полученного файла .
+//! @brief  Находит размер полученного файла .
 //!
-//! @param   FILE    - исходный текст.
-//! @param   lenght  - количество памяти (в бийтах) занимаемое исходным текстом.
+//! @param   file    - исходный текст.
 //!
 //! @return  Значение размера файла.
 //!
 //}----------------------------------------------------------------------------------------------------------------
 
 
-long size_file(FILE *f)
+long size_file(FILE *file)
 {
 
-    assert(f != NULL);
+    assert(file != NULL);
 
+//! length -  эта перменная нужна мне потому что я мидия
     long length = 0;
-    long last_position = ftell(f);
 
-    fseek(f, 0, SEEK_END);
-    length = ftell(f);
-    fseek(f, last_position, SEEK_END);
+//! last_position - дед сам такой
+    long last_position = ftell(file);
+
+    fseek(file, 0, SEEK_END);
+    length = ftell(file);
+    fseek(file, last_position, SEEK_END);
 
     return length;
 }
 
 //{----------------------------------------------------------------------------------------------------------------
-//! @brief  unit_test_size - проверочный тест функций на размер текста .
+//! @brief  Проверочный тест функций на размер текста .
 //!
-//! @param   FILE    - исходный текст.
-//! @param   lenght  - количество памяти (в бийтах) занимаемое исходным текстом.
 //!
 //! @return  Если размер текста совпал с эталонным    -- size is ok. \n
 //!          Если размер текста не совпал с эталонным -- problem in function size полученный результат и эталлонный. \n
@@ -219,11 +232,8 @@ void unit_test_size()
 
 
 //{----------------------------------------------------------------------------------------------------------------
-//! @brief  unit_test_read - проверочный тест функций на коректность текста и размера.
+//! @brief  Проверочный тест функций на коректность текста и размера.
 //!
-//! @param   text - текст файла.
-//! @param   size - размер файла.
-//! @param   c    - свободный член уравнения находящися по одну сторону с неизвестными.
 //!
 //! @return  Если текст в файле с текстом полученным после чтения равны -- text is ok. \n
 //!          Если текст в файле не совпал с считанным тестом -- Error text in file is wrong - (текст из файла). \n
@@ -263,21 +273,14 @@ void unit_test_read ()
 }
 
 //{----------------------------------------------------------------------------------------------------------------
-//! @brief   indication_beginning - создаёт массив указателей на начало строк.
+//! @brief   Создаёт структуру  указателей на начало строк и длинны этой строки.
 //!
 //! @param   lines    - количество строк в исходном тексте.
-//! @param   end_line - флаг показывает является ли текущий элемент началом строки или нет.
-//! @param   now_line - параметр отображающий номер строки в которй сейчас мы находимся.
 //! @param   text     - исходный текст.
 //!
-//! @return  Массив укаазателей на начлао каждой из сторк и тексте.
+//! @return  Структуру укаазателей на начлао каждой из сторк и их длину.
 //!
 //}----------------------------------------------------------------------------------------------------------------
-struct indication_beginning_size_lines
-{
-    char  *beginning;
-    int size;
-};
 
 
 struct indication_beginning_size_lines* indication_beginning (char * text, int lines){
@@ -304,6 +307,15 @@ struct indication_beginning_size_lines* indication_beginning (char * text, int l
     }
     return array_pointers_start;
 }
+
+
+//{----------------------------------------------------------------------------------------------------------------
+//! @brief   Проверяет на коректность работу функции создания стуркуры указателя на начало и длины строки в тексте.
+//!
+//!
+//! @return  Структуру укаазателей на начлао каждой из сторк и их длину.
+//!
+//}----------------------------------------------------------------------------------------------------------------
 
 void unit_test_indication()
 {
@@ -344,29 +356,43 @@ void unit_test_indication()
 }
 
 //{----------------------------------------------------------------------------------------------------------------
-//! @brief   sort - создаёт массив указателей на начало строк.
+//! @brief   Сортирует текст в зависимости от переданной в неё функции.
 //!
 //! @param   lines               - количество строк в исходном тексте.
-//! @param   array_pointer_start - массив указателей на начор каждой их строк в тексте.
+//! @param   array_pointer_start - структура из массива указателей на начор каждой их строк в тексте и её длинны.
+//! @param   function            - компоратор для сортировки.
 //!
 //! @return  Отсортированные строки текста.
 //!
 //}----------------------------------------------------------------------------------------------------------------
 
-void  sort(struct indication_beginning_size_lines *array_pointer_start, int lines, int (*function) (const char *str1, const char *str2))
+void sort(struct indication_beginning_size_lines *array_pointer_start, int lines,
+          int (*function) (const struct indication_beginning_size_lines *array_pointer_start_1,
+                           const struct indication_beginning_size_lines *array_pointer_start_2))
 {
     assert( function != NULL);
     assert(array_pointer_start != NULL);
 
+
     for(int i = 1; i < lines; i++)
         for(int j = 0; j < lines - i; j++)
-            if(function(array_pointer_start[j].beginning, array_pointer_start[j + 1].beginning) == 1)
+            if(function(&array_pointer_start[j], &array_pointer_start[j + 1]) == 1)
             {
                 struct indication_beginning_size_lines time_line = array_pointer_start[j];
                 array_pointer_start[j] = array_pointer_start[j+1];
                 array_pointer_start[j+1] = time_line;
             }
 }
+
+//{----------------------------------------------------------------------------------------------------------------
+//! @brief   Печатает в файл текущий текст.
+//!
+//! @param   lines               - количество строк в исходном тексте.
+//! @param   array_pointer_start - структура из указателей на начало каждой их строк в тексте и их длины.
+//!
+//! @return  Текст в файл.
+//!
+//}----------------------------------------------------------------------------------------------------------------
 
 void  printf_file(struct indication_beginning_size_lines *array_pointer_start, int lines)
 {
@@ -392,6 +418,17 @@ void  printf_file(struct indication_beginning_size_lines *array_pointer_start, i
      }
 }
 
+//{----------------------------------------------------------------------------------------------------------------
+//! @brief   Печатает массив структур .
+//!
+//! @param   lines               - количество строк в исходном тексте.
+//! @param   array_pointer_start - структура из указателей на начало каждой их строк в тексте и их длины.
+//! @param   title               - название или заголовок рспечатки.
+//!
+//! @return  Текст в файл.
+//!
+//}----------------------------------------------------------------------------------------------------------------
+
 void printf_array(struct indication_beginning_size_lines *array_pointer_start, int lines, const char *title)
 {
     printf("\n%s\n", title);
@@ -403,36 +440,73 @@ void printf_array(struct indication_beginning_size_lines *array_pointer_start, i
     printf("\n");
 }
 
-int up_sort(const char *str1, const char *str2)
-{
-    assert(str1 != NULL);
-    assert(str2 != NULL);
+//{----------------------------------------------------------------------------------------------------------------
+//! @brief   Функция для сортировки текста по возростанию .
+//!
+//! @param   array_pointer_start_1 - первая структура с строкой для сортировики.
+//! @param   array_pointer_start_2 - вторая структура с строкой для сортировки.
+//!
+//!
+//! @return  1 - если сорировка прошла успешно.
+//!
+//}----------------------------------------------------------------------------------------------------------------
 
-    if (strcmp(str1, str2) > 0)
+int up_sort (const struct indication_beginning_size_lines *array_pointer_start_1,
+             const struct indication_beginning_size_lines *array_pointer_start_2)
+{
+    assert(array_pointer_start_1 != NULL);
+    assert(array_pointer_start_2 != NULL);
+
+    if (strcmp(array_pointer_start_1->beginning, array_pointer_start_2->beginning) > 0)
         return 1;
 }
 
-int down_sort(const char *str1, const char *str2)
-{
-    assert(str1 != NULL);
-    assert(str2 != NULL);
+//{----------------------------------------------------------------------------------------------------------------
+//! @brief   Функция для сортировки текста по убыванию.
+//!
+//! @param   array_pointer_start_1 - первая структура с строкой для сортировики.
+//! @param   array_pointer_start_2 - вторая структура с строкой для сортировки.
+//!
+//!
+//! @return  1 - если сорировка прошла успешно.
+//!
+//}----------------------------------------------------------------------------------------------------------------
 
-    if (strcmp(str1, str2) > 0)
+int down_sort(const struct indication_beginning_size_lines *array_pointer_start_1,
+              const struct indication_beginning_size_lines *array_pointer_start_2)
+{
+    assert(array_pointer_start_1 != NULL);
+    assert(array_pointer_start_2 != NULL);
+
+    if (strcmp(array_pointer_start_1->beginning, array_pointer_start_2->beginning) > 0)
         return 1;
 }
 
-int  sort_revers(const char *str1, const char *str2)
+//{----------------------------------------------------------------------------------------------------------------
+//! @brief   Функция для сортировки текста начиная с конца по возрастанию .
+//!
+//! @param   array_pointer_start_1 - первая структура с строкой для сортировики.
+//! @param   array_pointer_start_2 - вторая структура с строкой для сортировки.
+//!
+//!
+//! @return  1 - если сорировка прошла успешно.
+//!
+//}----------------------------------------------------------------------------------------------------------------
+
+int  sort_revers(const struct indication_beginning_size_lines *array_pointer_start_1,
+                 const struct indication_beginning_size_lines *array_pointer_start_2)
 {
-    assert(str1 != NULL);
-    assert(str2 != NULL);
+    assert(array_pointer_start_1 != NULL);
+    assert(array_pointer_start_2 != NULL);
 
-    int len_1 = strlen(str1);
-    int len_2 = strlen(str2);
 
-    const char *end_1 = str1 + len_1;
-    const char *end_2 = str2 + len_2;
+    int len_1 = array_pointer_start_1->size;
+    int len_2 = array_pointer_start_2->size;
 
-    while ((end_1 >= str1) || (end_2 >= str2)) {
+    const char *end_1 = array_pointer_start_1->beginning + len_1;
+    const char *end_2 = array_pointer_start_2->beginning + len_2;
+
+    while ((end_1 >= array_pointer_start_1->beginning) || (end_2 >= array_pointer_start_2->beginning)) {
 
         for (int i = len_1; i > 0; i--)
             if (cmp_alpha(*end_1) == 0) end_1--;
@@ -445,6 +519,14 @@ int  sort_revers(const char *str1, const char *str2)
     }
     return 0;
 }
+//{----------------------------------------------------------------------------------------------------------------
+//! @brief   Функция для проверки является ли символ буквой .
+//!
+//! @param   char1 - символ передающийся для проверки.
+//!
+//! @return  1 - если буква и 0 - если  нет.
+//!
+//}----------------------------------------------------------------------------------------------------------------
 
 int cmp_alpha(char char1)
 {
