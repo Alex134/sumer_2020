@@ -93,41 +93,38 @@ char* my_strtok (char str[], const char delimiters[])
 {
 
     char *beginning = NULL;
-    //static int finish = 0;
     static char *finish = NULL;
 
-
-    if(str == NULL)
+    if(!str)
     {
         // printf("finish = %c    ", *finish);
         str = finish;
-        //printf("finish = %d, ", finish);
-
     }
 
-    for ( int i_str = 0; str[i_str] != '\0'; i_str++)
-    {
+    char *i_str = str;
+    for ( ; *i_str; i_str++) {
         // printf("first for is ok, ");
-        if (my_strchr(delimiters, str[i_str]) == NULL)
-        {
-            beginning = &str[i_str];
+        if (!my_strchr(delimiters, *i_str)) {
             // printf("beginning = %c   ", *beginning);
-
-            for (int i_str_begin = i_str; str[i_str_begin] != '\0'; i_str_begin++)
-            {
-                if (my_strchr(delimiters, str[i_str_begin]) != NULL)
-                {
-                    str[i_str_begin] = '\0';
-                    //finish = i_str_begin + 1;
-                    finish = &str[i_str_begin + 1];
-                    //printf("first finish = %d   \n", finish);
-
-                    return beginning;
-                }
-            }
+            break;
         }
     }
 
+    beginning = i_str;
+
+    for (char *i_str_begin = i_str; *i_str_begin; i_str_begin++)
+    {
+        if (my_strchr(delimiters, *i_str_begin))
+        {
+            *i_str_begin = '\0';
+            finish = i_str_begin + 1;
+            //printf("first finish = %d   \n", finish);
+
+            return beginning;
+        }
+    }
+
+    return NULL;
 }
 
 void unit_tets_strtok() {
